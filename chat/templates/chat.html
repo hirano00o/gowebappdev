@@ -10,6 +10,7 @@
       <ul id="messages"></ul>
       チャットアプリケーション on WebSocket
       <form id="chatbox">
+          {{ .UserData.name }}:<br>
           <textarea></textarea>
           <input type="submit" value="送信" />
       </form>
@@ -26,7 +27,7 @@
                     alert("error: do not connect server with websocket.");
                     return false;
                 }
-                socket.send(msgBox.val());
+                socket.send(JSON.stringify({"Message": msgBox.val()}));
                 msgBox.val("");
                 return false;
             });
@@ -38,7 +39,21 @@
                     alert("finished connect.");
                 }
                 socket.onmessage = function(e) {
-                    messages.append($("<li>").text(e.data));
+                    var msg = JSON.parse(e.data);
+                    var dd = new Date(msg.When);
+                    var d = dd.getFullYear();
+                    var m = dd.getMonth() + 1;
+                    m = ( m < 10 ) ? "0" + m : m;
+                    var day = ( dd.getDate() < 10) ? "0" + dd.getDate() : dd.getDate();
+                    var h = ( dd.getHours() < 10 ) ? "0" + dd.getHours() : dd.getHours();
+                    var mm = ( dd.getMinutes() < 10 ) ? "0" + dd.getMinutes() : dd.getMinutes();
+                    var s = ( dd.getSeconds() < 10 ) ? "0" + dd.getSeconds() : dd.getSeconds();
+                    messages.append(
+                        $("<li>").append(
+                        $("<span>").text(d + "/" + m + "/" + day + " " + h + ":" + m + ":" + s + " "),
+                        $("<strong>").text(msg.Name + ": "),
+                        $("<span>").text(msg.Message))
+                    );
                 }
             }
         });
