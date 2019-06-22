@@ -29,43 +29,46 @@ var UseFileSystemAvatar FileSystemAvatar
 
 // Avatar represents interface profile image
 type Avatar interface {
-	GetAvatarURL(c *client) (string, error)
+	GetAvatarURL(u ChatUser) (string, error)
 }
 
+// TryAvatars is all avatars
+type TryAvatars []Avatar
+
 // GetAvatarURL return avatar url
-func (a AuthAvatar) GetAvatarURL(c *client) (string, error) {
-	if url, ok := c.userData["avatar_url"]; ok {
-		if urlStr, ok := url.(string); ok {
-			return urlStr, nil
-		}
+func (a AuthAvatar) GetAvatarURL(u ChatUser) (string, error) {
+	url := u.AvatarURL()
+	if url != "" {
+		return url, nil
 	}
 	return "", ErrNoAvatarURL
 }
 
 // GetAvatarURL return avatar url
-func (g GravatarAvatar) GetAvatarURL(c *client) (string, error) {
-	if userid, ok := c.userData["userid"]; ok {
-		if useridStr, ok := userid.(string); ok {
-			return "//www.gravatar.com/avatar/" + useridStr, nil
-		}
-	}
-	return "", ErrNoAvatarURL
+func (g GravatarAvatar) GetAvatarURL(u ChatUser) (string, error) {
+	return "//www.gravatar.com/avatar/" + u.UniqueID(), nil
 }
 
 // GetAvatarURL return avatar path
-func (f FileSystemAvatar) GetAvatarURL(c *client) (string, error) {
-	if userid, ok := c.userData["userid"]; ok {
-		if useridStr, ok := userid.(string); ok {
-			if files, err := ioutil.ReadDir("avatars"); err == nil {
-				for _, file := range files {
-					if file.IsDir() {
-						continue
-					}
-					if match, _ := filepath.Match(useridStr+"*", file.Name()); match {
-						return "/avatars/" + file.Name(), nil
-					}
-				}
+func (f FileSystemAvatar) GetAvatarURL(u ChatUser) (string, error) {
+	if files, err := ioutil.ReadDir("avatars"); err == nil {
+		for _, file := range files {
+			if file.IsDir() {
+				continue
 			}
+			if match, _ := filepath.Match(u.UniqueID()+"*", file.Name()); match {
+				return "/avatars/" + file.Name(), nil
+			}
+		}
+	}
+	return "", ErrNoAvatarURL
+}
+
+// GetAvatarURL try all avatar
+func (a TryAvatars) GetAvatarURL(u ChatUser) (string, error) {
+	for _, avatar := range a {
+		if url, err := avatar.GetAvatarURL(u); err == nil {
+			return url, nil
 		}
 	}
 	return "", ErrNoAvatarURL

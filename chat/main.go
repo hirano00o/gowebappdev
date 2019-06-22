@@ -18,7 +18,12 @@ import (
 )
 
 var (
-	addr = flag.String("addr", ":8080", "address for application")
+	addr           = flag.String("addr", ":8080", "address for application")
+	avatars Avatar = TryAvatars{
+		UseFileSystemAvatar,
+		UseAuthAvatar,
+		UseGravatar,
+	}
 )
 
 type templateHandler struct {
@@ -49,7 +54,7 @@ func main() {
 		google.New("323700730694-ndpbm7vgpjslt9r3bcp8bdnthpgkk7t8.apps.googleusercontent.com", "ZJPnT_XumSvUQI7ZKkSqQTUJ", "http://uuday.dip.jp:8080/auth/callback/google"),
 	)
 
-	r := newRoom(UseFileSystemAvatar)
+	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/login", &templateHandler{filename: "login.html"})
