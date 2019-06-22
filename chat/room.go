@@ -15,6 +15,7 @@ type room struct {
 	leave   chan *client
 	clients map[*client]bool
 	tracer  trace.Tracer
+	avatar  Avatar
 }
 
 const (
@@ -22,12 +23,13 @@ const (
 	messageBufferSize = 256
 )
 
-func newRoom() *room {
+func newRoom(avatar Avatar) *room {
 	return &room{
 		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
+		avatar:  avatar,
 	}
 }
 

@@ -1,19 +1,29 @@
 <html>
   <head>
     <title>チャット</title>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 <style>
-    input {display: block;}
-    ul {list-style: none;}
+    ul#messages { list-style: none; }
+    ul#messages li { margin-bottom: 2px; }
+    ul#messages li img { margin-right: 10px; }
 </style>
   </head>
   <body>
+      <div class="container">
+      <div class="panel panel-default">
+      <div class="panel-body">
       <ul id="messages"></ul>
-      チャットアプリケーション on WebSocket
-      <form id="chatbox">
-          {{ .UserData.name }}:<br>
-          <textarea></textarea>
-          <input type="submit" value="送信" />
+      </div>
+      </div>
+      <form id="chatbox" role="form">
+          <div class="form-group">
+              <label for="message">{{ .UserData.name }}:</label>
+              or <a href="/logout">Sign out</a>
+          <textarea id="message" class="form-control"></textarea>
+          </div>
+          <input type="submit" value="送信" class="btn btn-default" />
       </form>
+      </div>
       <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
       </script>
     <script>
@@ -50,9 +60,13 @@
                     var s = ( dd.getSeconds() < 10 ) ? "0" + dd.getSeconds() : dd.getSeconds();
                     messages.append(
                         $("<li>").append(
-                        $("<span>").text(d + "/" + m + "/" + day + " " + h + ":" + m + ":" + s + " "),
-                        $("<strong>").text(msg.Name + ": "),
-                        $("<span>").text(msg.Message))
+                            $("<img>").attr("title", msg.Name).css({
+                                width:50,
+                                verticalAlign:"middle"
+                            }).attr("src", msg.AvatarURL),
+                            $("<strong>").text(d + "/" + m + "/" + day + " " + h + ":" + m + ":" + s + " "),
+                            $("<span>").text(msg.Message)
+                        )
                     );
                 }
             }
