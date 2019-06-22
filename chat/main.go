@@ -18,7 +18,12 @@ import (
 )
 
 var (
-	addr = flag.String("addr", ":8080", "address for application")
+	addr           = flag.String("addr", ":8080", "address for application")
+	avatars Avatar = TryAvatars{
+		UseFileSystemAvatar,
+		UseAuthAvatar,
+		UseGravatar,
+	}
 )
 
 type templateHandler struct {
@@ -53,8 +58,21 @@ func main() {
 	r.tracer = trace.New(os.Stdout)
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/login", &templateHandler{filename: "login.html"})
+	http.Handle("/upload", &templateHandler{filename: "upload.html"})
 	http.HandleFunc("/auth/", loginHandler)
+	http.HandleFunc("/uploader", uploaderHandler)
 	http.Handle("/room", r)
+	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{
+			Name:   "auth",
+			Value:  "",
+			Path:   "/",
+			MaxAge: -1,
+		})
+		w.Header()["Location"] = []string{"/chat"}
+		w.WriteHeader(http.StatusTemporaryRedirect)
+	})
+	http.Handle("/avatars/", http.StripPrefix("/avatars/", http.FileServer(http.Dir("./avatars"))))
 	go r.run()
 	log.Println("start Web Server. Port:", *addr)
 	if err := http.ListenAndServe(*addr, nil); err != nil {
